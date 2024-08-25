@@ -4,6 +4,15 @@
 
 **Study/Practice Topics:**
 
+**RESTfull**
+- Client-Server.
+
+- Stateless
+
+- Cacheability
+
+- Uniform Interface: Resource Identification, Representations, Self-descriptive Messages, HATEOAS (Hypermedia As The Engine Of Application State)
+  
 - **Spring Boot**
 - **Spring MVC**
 - **Spring Data JPA** (for database operations)
