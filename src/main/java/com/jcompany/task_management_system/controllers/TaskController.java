@@ -2,6 +2,11 @@ package com.jcompany.task_management_system.controllers;
 
 import java.util.List;
 
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,9 +45,14 @@ public class TaskController {
 	
 	@CrossOrigin
 	@GetMapping("/all")
-	public ResponseEntity<List<Task>> getAll()  {
+	public ResponseEntity<List<EntityModel<Task>>> getAll()  {
 		List<Task> tasks = taskService.findAll();
-		return new ResponseEntity<>(tasks, HttpStatus.OK);
+		
+	     List<EntityModel<Task>> taskModels = tasks.stream()
+								                 	.map(this::toModel)
+								                 	.toList();
+										 
+		return new ResponseEntity<>(taskModels , HttpStatus.OK);
 	}
 	
     @CrossOrigin
@@ -77,5 +87,14 @@ public class TaskController {
 	public void setTaskService(TaskService taskService) {
 		this.taskService = taskService;
 	}
+	
+	private EntityModel<Task> toModel(Task task) {
+        EntityModel<Task> model = EntityModel.of(task);
+        Link selfLink = linkTo(methodOn(TaskController.class).getAll()).withSelfRel();
+        Link markAsDoneLink = linkTo(methodOn(TaskController.class).markAsDone(task.getIdTask())).withRel("markAsDone");
+        Link uncheckTaskLink = linkTo(methodOn(TaskController.class).uncheckTask(task.getIdTask())).withRel("uncheckTask");
+        model.add(selfLink, markAsDoneLink, uncheckTaskLink);
+        return model;
+    }
 	
 }
