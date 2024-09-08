@@ -1,13 +1,13 @@
 package com.jcompany.task_management_system.controllers;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import java.util.List;
 
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.jcompany.task_management_system.controllers.assemblers.TaskModelAssembler;
 import com.jcompany.task_management_system.dtos.TaskDTO;
 import com.jcompany.task_management_system.entities.Task;
 import com.jcompany.task_management_system.services.TaskService;
@@ -35,66 +36,81 @@ import jakarta.validation.Valid;
 public class TaskController {
 
 	TaskService taskService;
-	
+	TaskModelAssembler taskModelAssembler;
+
 	@CrossOrigin
 	@PostMapping("/add")
-	public ResponseEntity<Void> add(@Valid @RequestBody TaskDTO taskDTO)  {
-		taskService.add(taskDTO);
-		return new ResponseEntity<>(HttpStatus.CREATED);
-	}	
-	
+	public ResponseEntity<EntityModel<Task>> add(@Valid @RequestBody TaskDTO taskDTO) {
+		Task createdTask = taskService.add(taskDTO);
+		EntityModel<Task> taskModel = taskModelAssembler.toModel(createdTask);
+
+		return ResponseEntity
+				.created(linkTo(methodOn(TaskController.class).getTasksByUserId(createdTask.getIdTask())).toUri())
+				.body(taskModel);
+	}
+
 	@CrossOrigin
 	@GetMapping("/all")
-	public ResponseEntity<List<EntityModel<Task>>> getAll()  {
+	public ResponseEntity<CollectionModel<Task>> getAll() {
 		List<Task> tasks = taskService.findAll();
-		
-	     List<EntityModel<Task>> taskModels = tasks.stream()
-								                 	.map(this::toModel)
-								                 	.toList();
-										 
-		return new ResponseEntity<>(taskModels , HttpStatus.OK);
+		CollectionModel<Task> taskCollection = taskModelAssembler.toCollectionModel(tasks);
+		return new ResponseEntity<>(taskCollection, HttpStatus.OK);
 	}
-	
-    @CrossOrigin
-    @GetMapping("/byuser")
-    public ResponseEntity<List<Task>> getTasksByUserId(@RequestParam Long idUsuario) {
-         List<Task> tasks = taskService.getTasksByUser(idUsuario);
-         return new ResponseEntity<>(tasks, HttpStatus.OK);
-    }
-    
-    @CrossOrigin
-    @PutMapping("/{id}/done")
-    public ResponseEntity<Void> markAsDone(@PathVariable Long id) {
-        taskService.markAsDone(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
 
-    @CrossOrigin
-    @PutMapping("/{id}/uncheck")
-    public ResponseEntity<Void> uncheckTask(@PathVariable Long id) {
-        taskService.uncheckTask(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-    
-    @CrossOrigin
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
-        taskService.deleteTask(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-	
+	@CrossOrigin
+	@GetMapping("/byuser")
+	public ResponseEntity<CollectionModel<Task>> getTasksByUserId(@RequestParam Long idUsuario) {
+		List<Task> tasks = taskService.getTasksByUser(idUsuario);
+		CollectionModel<Task> taskCollection = taskModelAssembler.toCollectionModel(tasks);
+		return new ResponseEntity<>(taskCollection, HttpStatus.OK);
+	}
+
+	@CrossOrigin
+	@PutMapping("/{id}/done")
+	public ResponseEntity<EntityModel<Task>> markAsDone(@PathVariable Long id) {
+		Task updatedTask = taskService.markAsDone(id);
+		return ResponseEntity.ok(taskModelAssembler.toModel(updatedTask));
+	}
+
+	@CrossOrigin
+	@PutMapping("/{id}/uncheck")
+	public ResponseEntity<EntityModel<Task>> uncheckTask(@PathVariable Long id) {
+		Task updatedTask = taskService.uncheckTask(id);
+		return ResponseEntity.ok(taskModelAssembler.toModel(updatedTask));
+	}
+
+	@CrossOrigin
+	@DeleteMapping("/{id}")
+	public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+		taskService.deleteTask(id);
+		return ResponseEntity.noContent().location(linkTo(methodOn(TaskController.class).getAll()).toUri()).build();
+	}
+
+	@CrossOrigin
+	@PutMapping("/done/all")
+	public ResponseEntity<CollectionModel<Task>> markAllAsDone() {
+		taskService.markAllAsDone();
+		List<Task> tasks = taskService.findAll();
+		CollectionModel<Task> taskCollection = taskModelAssembler.toCollectionModel(tasks);
+		return ResponseEntity.ok(taskCollection);
+	}
+
+	@CrossOrigin
+	@PutMapping("/uncheck/all")
+	public ResponseEntity<CollectionModel<Task>> uncheckAllTasks() {
+		taskService.uncheckAllTasks();
+		List<Task> tasks = taskService.findAll();
+		CollectionModel<Task> taskCollection = taskModelAssembler.toCollectionModel(tasks);
+		return ResponseEntity.ok(taskCollection);
+	}
+
+	@Autowired
+	public void setTaskModelAssembler(TaskModelAssembler taskModelAssembler) {
+		this.taskModelAssembler = taskModelAssembler;
+	}
+
 	@Autowired
 	public void setTaskService(TaskService taskService) {
 		this.taskService = taskService;
 	}
-	
-	private EntityModel<Task> toModel(Task task) {
-        EntityModel<Task> model = EntityModel.of(task);
-        Link selfLink = linkTo(methodOn(TaskController.class).getAll()).withSelfRel();
-        Link markAsDoneLink = linkTo(methodOn(TaskController.class).markAsDone(task.getIdTask())).withRel("markAsDone");
-        Link uncheckTaskLink = linkTo(methodOn(TaskController.class).uncheckTask(task.getIdTask())).withRel("uncheckTask");
-        model.add(selfLink, markAsDoneLink, uncheckTaskLink);
-        return model;
-    }
-	
 }

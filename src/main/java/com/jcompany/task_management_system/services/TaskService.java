@@ -31,7 +31,7 @@ public class TaskService {
 		this.usuarioRepository = usuarioRepository;
 	}
 	
-	public void add(@Valid TaskDTO taskDTO) {
+	public Task add(@Valid TaskDTO taskDTO) {
 		Long idUsuario = taskDTO.getIdUsuario();
 		String description = taskDTO.getDescription();
 		
@@ -44,7 +44,7 @@ public class TaskService {
 		newTask.setDescription(description);
 		newTask.setUsuario(usuario);
 		
-		taskRepository.save(newTask);		
+		return taskRepository.save(newTask);		
 	}
 	
 	public List<Task> findAll() {
@@ -58,20 +58,20 @@ public class TaskService {
 		return taskRepository.findByUsuario(usuario);
 	}
 	
-	public void markAsDone(Long id) {
+	public Task markAsDone(Long id) {
 		Optional<Task> taskOpt = taskRepository.findById(id);
 		Task task = taskOpt.get();
 		task.markDone();
 		
-		taskRepository.save(task);
+		return taskRepository.save(task);
 	}
 
-	public void uncheckTask(Long id) {
+	public Task uncheckTask(Long id) {
 		Optional<Task> taskOpt = taskRepository.findById(id);
 		Task task = taskOpt.get();
 		task.uncheck();
 		
-		taskRepository.save(task);
+		return taskRepository.save(task);
 		
 	}
 
@@ -80,6 +80,14 @@ public class TaskService {
 		Task task = taskOpt.get();
 		
 		taskRepository.delete(task);
+	}
+
+	public void markAllAsDone() {
+		
+	}
+
+	public void uncheckAllTasks() {
+		
 	}
 	
 	
