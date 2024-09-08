@@ -5,7 +5,7 @@ Create a web application to manage tasks, allowing users to create, view, update
 
 **Study/Practice Topics:**
 
-### RESTful Principles
+### RESTful API
 - **Client-Server**: Separation of concerns between the client (user interface) and server (backend services), enabling independent development and scaling.
 - **Stateless**: Each request from the client to the server must contain all the information the server needs to fulfill the request, without relying on stored context on the server.
 - **Cacheability**: Responses from the server must be explicitly marked as cacheable or non-cacheable to improve performance by reducing the need for repeated requests.
