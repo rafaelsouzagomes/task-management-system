@@ -68,6 +68,10 @@ curl -X PUT "http://localhost:8080/tasks/1/done" \
 
 - Allow responses to be cacheable when appropriate to improve efficiency. Use HTTP headers to control caching, such as `Cache-Control`.
 
+![image](https://github.com/user-attachments/assets/859f1a4d-cbb3-4c6c-baa9-6070eb9f6ddb)
+
+
+
 ## Use of HATEOAS (Hypermedia As The Engine Of Application State):
 
 - Include links in resource representations to guide clients in navigating and discovering the API’s functionalities.
