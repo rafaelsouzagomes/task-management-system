@@ -32,7 +32,7 @@ import jakarta.validation.Valid;
 @CrossOrigin
 @Transactional
 @RestController
-@RequestMapping("/task")
+@RequestMapping("/tasks")
 public class TaskController {
 
 	TaskService taskService;
@@ -58,7 +58,7 @@ public class TaskController {
 	}
 
 	@CrossOrigin
-	@GetMapping("/byuser")
+	@GetMapping()
 	public ResponseEntity<CollectionModel<Task>> getTasksByUserId(@RequestParam Long idUsuario) {
 		List<Task> tasks = taskService.getTasksByUser(idUsuario);
 		CollectionModel<Task> taskCollection = taskModelAssembler.toCollectionModel(tasks);
